@@ -1,0 +1,44 @@
+pipeline {
+    tools {
+        maven 'Maven3'
+    }
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: '<GIT_REPO_URL>']]])
+            }
+        }
+        stage('Build Jar') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+        stage('Docker Image Build') {
+            steps {
+                sh 'docker build -t <IMAGE_NAME> .'
+            }
+        }
+        stage('Push Docker Image to ECR') {
+            steps {
+                withAWS(credentials: '<AWS_CREDENTIALS_ID>', region: '<AWS_REGION>') {
+                    sh 'aws ecr get-login-password --region <AWS_REGION> | docker login --username AWS --password-stdin <ECR_REGISTRY_ID>'
+                    sh 'docker tag <IMAGE_NAME>:latest <ECR_REGISTRY_ID>/<IMAGE_NAME>:latest'
+                    sh 'docker push <ECR_REGISTRY_ID>/<IMAGE_NAME>:latest'
+                }
+            }
+        }
+        stage('Integrate Jenkins with EKS Cluster and Deploy App') {
+            steps {
+                withAWS(credentials: '<AWS_CREDENTIALS_ID>', region: '<AWS_REGION>') {
+                  script {
+                    sh ('aws eks update-kubeconfig --name <EKS_CLUSTER_NAME> --region <AWS_REGION>')
+                    sh "kubectl apply -f <K8S_DEPLOY_FILE>.yaml"
+                    }
+                }
+        
+            }
+        }
+    }
+    
+}
