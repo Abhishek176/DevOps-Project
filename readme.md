@@ -1,7 +1,10 @@
 ## AWS Prerequisites
 Set up an EC2 instance in an Amazon VPC.
 Set up a Cluster and Worker Nodes              
-Install and configure Jenkins in an EC2 instance and then install Docker as well            
+Install and configure Jenkins in an EC2 instance and then install Docker as well 
+
+Sample Spring boot project
+    https://github.com/Abhishek176/springboot-app-deployment-K8S.git
 
 ## Install required Plugins in Jenkins
 1. Amazon EC2 plugin
